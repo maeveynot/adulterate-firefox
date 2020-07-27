@@ -1,0 +1,24 @@
+#!/bin/sh
+
+set -e
+
+latest_url="https://download.mozilla.org/?product=firefox-latest&os=${FIREFOX_ARCH:-linux64}&lang=${FIREFOX_LANG:-en-US}"
+echo "<-- Checking version at ${latest_url}..."
+
+tarball_url="$(curl -sS -o /dev/null -w '%{redirect_url}' "$latest_url")"
+tarball="tarballs/$(basename "$tarball_url")"
+
+if test -f "$tarball"; then
+    echo "<-- Already downloaded $tarball"
+else
+    echo "<-- Downloading ${tarball}..."
+    curl -o "$tarball" "$tarball_url"
+fi
+
+if test -n "$*"; then
+    echo "<-- Extracting ${*} from $tarball..."
+    tar xjf "$tarball" -- "$@"
+else
+    echo "*** Nothing specified to extract!"
+    exit 1
+fi

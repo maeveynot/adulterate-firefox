@@ -1,0 +1,57 @@
+#!/bin/sh
+
+set -e
+
+while getopts "i:o:r:x:" opt; do
+  case "$opt" in
+    i) in_zip="$OPTARG";;
+    o) out_zip="$OPTARG";;
+    r) relative_to="$OPTARG";;
+  esac
+done
+shift $(($OPTIND - 1))
+
+if test -z "$in_zip" -o -z "$out_zip"; then
+    echo "usage: $(basename "$0") -i IN_ZIP -o OUT_ZIP [-r REMOVE_FROM_PATHS] [FILES...]"
+    exit 2
+fi
+
+if test -z "$*"; then
+    echo "=== No overlay files specified! Just copying ${in_zip} to ${out_zip}."
+    echo "*** Try adding some files to: ${relative_to}"
+    cp "$in_zip" "$out_zip"
+    exit
+fi
+
+repack_dir="$(mktemp -d -t repack.XXXXXX)"
+trap 'exit $?' HUP INT QUIT TERM; trap 'rm -rf "$repack_dir"' EXIT
+
+echo "=== Unpacking $in_zip"
+unzip -qd "$repack_dir" "$in_zip" || if test $? -eq 2; then
+    unpacked_at_least_one_file=''
+    for _ in "$repack_dir"/*; do
+        unpacked_at_least_one_file='heckin'
+        break
+    done
+    if test -n "$unpacked_at_least_one_file"; then
+        echo "--- Warning! unzip(1) found a problem, but still unpacked something."
+        echo "--- This is probably fine, but please verify that ${out_zip}"
+        echo "--- contains the same files as ${in_zip}."
+    else
+        echo "*** No files found!"
+        exit 1
+    fi
+else
+    echo "*** Failed."
+    exit 1
+fi
+
+for overlay_file; do
+    cp "$overlay_file" "${repack_dir}/${overlay_file#$relative_to/}"
+done
+
+out_zip_absolute_path="$(realpath -m "$out_zip")"
+mkdir -p "$(dirname "$out_zip_absolute_path")"
+(cd "$repack_dir" && zip -qXD0r "$out_zip_absolute_path" *)
+
+echo "=== Created $out_zip"

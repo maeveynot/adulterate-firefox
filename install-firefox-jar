@@ -1,0 +1,36 @@
+#!/bin/sh
+
+set -e
+
+cache="$HOME/.cache/mozilla/firefox"
+
+if ! test -f "$2"; then
+    echo "--> No file to replace found at $2"
+    echo "*** Try setting DEST to the location of your Firefox installation."
+    exit 1
+fi
+
+# This is super hacky; if there were a command line option that's the
+# opposite of --new-instance that only succeeds if there's a running
+# instance, we could do it properly.
+
+if pgrep -xf firefox >/dev/null 2>&1; then
+    echo "--> Firefox is running; please close it and back up your profile."
+    echo "*** Seriously, back up your profile. This might completely break it."
+    exit 2
+fi
+
+if test -d "$cache"; then
+    echo "--> To pick up changes, $cache must be deleted. Please confirm:"
+    rm -rI "$cache"
+fi
+
+if test -f "$2.orig"; then
+    echo "--> Already backed up $2 to $2.orig; proceeding."
+else
+    echo "--> Backing up $2 to $2.orig"
+    mv "$2" "$2.orig"
+fi
+
+echo "--> Copying $1 over $2"
+cp "$1" "$2"
