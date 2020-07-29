@@ -168,7 +168,7 @@ if (AppConstants.platform == "macosx") {
     <command id="View:PageSource" oncommand="BrowserViewSource(window.gBrowser.selectedBrowser);"/>
     <command id="View:PageInfo" oncommand="BrowserPageInfo();"/>
     <command id="View:FullScreen" oncommand="BrowserFullScreen();"/>
-    <command id="View:ReaderView" oncommand="ReaderParent.toggleReaderMode(event);"/>
+    <command id="View:ReaderView" oncommand="AboutReaderParent.toggleReaderMode(event);"/>
     <command id="View:PictureInPicture" oncommand="PictureInPicture.onCommand(event);"/>
     <command id="cmd_find" oncommand="gLazyFindCommand('onFindCommand')"/>
     <command id="cmd_findAgain" oncommand="gLazyFindCommand('onFindAgainCommand', false)"/>
@@ -518,18 +518,20 @@ if (AppConstants.platform == "macosx") {
            noautofocus="true"
            hidden="true" />
 
-    <!-- for date/time picker. consumeoutsideclicks is set to never, so that
-         clicks on the anchored input box are never consumed. -->
-    <panel id="DateTimePickerPanel"
-           type="arrow"
-           hidden="true"
-           orient="vertical"
-           noautofocus="true"
-           norolluponanchor="true"
-           consumeoutsideclicks="never"
-           level="parent"
-           tabspecific="true">
-    </panel>
+    <html:template id="dateTimePickerTemplate">
+      <!-- for date/time picker. consumeoutsideclicks is set to never, so that
+           clicks on the anchored input box are never consumed. -->
+      <panel id="DateTimePickerPanel"
+             type="arrow"
+             hidden="true"
+             orient="vertical"
+             noautofocus="true"
+             norolluponanchor="true"
+             consumeoutsideclicks="never"
+             level="parent"
+             tabspecific="true">
+      </panel>
+    </html:template>
 
     <!-- for select dropdowns. The menupopup is what shows the list of options,
          and the popuponly menulist makes things like the menuactive attributes
@@ -542,10 +544,12 @@ if (AppConstants.platform == "macosx") {
         />
     </menulist>
 
-    <!-- for invalid form error message -->
-    <panel id="invalid-form-popup" type="arrow" orient="vertical" noautofocus="true" hidden="true" level="parent">
-      <description/>
-    </panel>
+    <html:template id="invalidFormTemplate">
+      <!-- for invalid form error message -->
+      <panel id="invalid-form-popup" type="arrow" orient="vertical" noautofocus="true" level="parent">
+        <description/>
+      </panel>
+    </html:template>
 
     <html:template id="editBookmarkPanelTemplate">
       <panel id="editBookmarkPanel"
@@ -1516,7 +1520,7 @@ if (AppConstants.platform == "macosx") {
       </popupnotificationcontent>
 
       <popupnotificationcontent id="webRTC-preview" hidden="true">
-        <html:video id="webRTC-previewVideo"/>
+        <html:video id="webRTC-previewVideo" tabindex="-1"/>
         <vbox id="webRTC-previewWarningBox">
           <spacer flex="1"/>
           <description id="webRTC-previewWarning"/>
@@ -1828,6 +1832,8 @@ if (AppConstants.platform == "macosx") {
       <vbox class="panel-subview-body">
         <vbox id="appMenu-addon-banners"/>
         <toolbarbutton id="appMenu-update-banner" class="panel-banner-item"
+                       data-l10n-id="appmenuitem-update-banner"
+                       data-l10n-attrs="label-update-downloading"
                        label-update-available="&updateAvailable.panelUI.label;"
                        label-update-manual="&updateManual.panelUI.label;"
                        label-update-unsupported="&updateUnsupported.panelUI.label;"
@@ -2334,12 +2340,6 @@ if (AppConstants.platform == "macosx") {
         <toolbarseparator/>
         <vbox id="PanelUI-characterEncodingView-charsets"
               class="PanelUI-characterEncodingView-list"/>
-        <toolbarseparator id="PanelUI-characterEncodingView-autodetect-separator"/>
-        <vbox id="PanelUI-characterEncodingView-autodetect-container">
-          <label id="PanelUI-characterEncodingView-autodetect-label"/>
-          <vbox id="PanelUI-characterEncodingView-autodetect"
-                class="PanelUI-characterEncodingView-list"/>
-        </vbox>
       </vbox>
     </panelview>
 
@@ -2554,6 +2554,9 @@ if (AppConstants.platform == "macosx") {
 
     <panelview id="PanelUI-whatsNew" class="PanelUI-subView">
       <vbox class="panel-subview-body">
+        <box id="PanelUI-whatsNew-title" class="panel-header">
+          <label data-l10n-id="whatsnew-panel-header"/>
+        </box>
         <toolbaritem id="PanelUI-whatsNew-content"
                      orient="vertical"
                      smoothscroll="false">
@@ -2623,10 +2626,10 @@ if (AppConstants.platform == "macosx") {
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 
+<html:template id="template-identity-popup">
 <panel id="identity-popup"
        class="panel-no-padding"
        type="arrow"
-       hidden="true"
        role="alertdialog"
        noautofocus="true"
        aria-labelledby="identity-popup-mainView-panel-header-span"
@@ -2744,7 +2747,7 @@ if (AppConstants.platform == "macosx") {
 
         <!-- Connection is Not Secure -->
         <description when-connection="not-secure cert-error-page"
-                     data-l10n-id="identity-description-insecure"></description> 
+                     data-l10n-id="identity-description-insecure"></description>
 
         <!-- Weak Cipher -->
         <description when-ciphers="weak" data-l10n-id="identity-description-weak-cipher-intro"></description>
@@ -2798,6 +2801,7 @@ if (AppConstants.platform == "macosx") {
     </panelview>
   </panelmultiview>
 </panel>
+</html:template>
 <!-- This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
@@ -3165,6 +3169,10 @@ if (AppConstants.platform == "macosx") {
            oncommand="goDoCommand('downloadsCmd_copyLocation')"/>
   <command id="downloadsCmd_clearList"
            oncommand="goDoCommand('downloadsCmd_clearList')"/>
+  <command id="downloadsCmd_openInSystemViewer"
+           oncommand="goDoCommand('downloadsCmd_openInSystemViewer')"/>
+  <command id="downloadsCmd_alwaysOpenInSystemViewer"
+           oncommand="goDoCommand('downloadsCmd_alwaysOpenInSystemViewer')"/>
 </commandset>
 
 <!-- The panel has level="top" to ensure that it is never hidden by the
@@ -3202,6 +3210,13 @@ if (AppConstants.platform == "macosx") {
     <menuitem command="downloadsCmd_unblock"
               class="downloadUnblockMenuItem"
               data-l10n-id="downloads-cmd-unblock"/>
+    <menuitem command="downloadsCmd_openInSystemViewer"
+              class="downloadUseSystemDefaultMenuItem"
+              data-l10n-id="downloads-cmd-use-system-default"/>
+    <menuitem command="downloadsCmd_alwaysOpenInSystemViewer"
+              type="checkbox"
+              class="downloadAlwaysUseSystemDefaultMenuItem"
+              data-l10n-id="downloads-cmd-always-use-system-default"/>
     <menuitem command="downloadsCmd_show"
               class="downloadShowMenuItem"
               data-l10n-id="downloads-cmd-show-menuitem"
@@ -3664,7 +3679,7 @@ if (AppConstants.platform == "macosx") {
                               oncommand="gPageStyleMenu.disableStyle();"
                               type="radio" data-l10n-id="menu-view-page-style-no-style"/>
                     <menuitem id="menu_pageStylePersistentOnly"
-                              oncommand="gPageStyleMenu.switchStyleSheet('');"
+                              oncommand="gPageStyleMenu.switchStyleSheet(null);"
                               type="radio"
                               checked="true" data-l10n-id="menu-view-page-basic-style"/>
                     <menuseparator/>
@@ -4253,7 +4268,7 @@ if (AppConstants.platform == "macosx") {
                        tooltip="dynamic-shortcut-tooltip"
                        role="button"
                        hidden="true"
-                       onclick="ReaderParent.buttonClick(event);"/>
+                       onclick="AboutReaderParent.buttonClick(event);"/>
                 <toolbarbutton id="urlbar-zoom-button"
                        onclick="FullZoom.reset();"
                        tooltip="dynamic-shortcut-tooltip"
