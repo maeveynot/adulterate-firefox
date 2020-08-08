@@ -131,6 +131,48 @@ if (AppConstants.platform == "macosx") {
   window.addEventListener("DOMContentLoaded",
     gBrowserInit.onDOMContentLoaded.bind(gBrowserInit), { once: true });
 </script>
+<script>
+  // Copied from the definition of _on_keydown at UrlbarInput.jsm:2378,
+  // except we add a snippet of handleKeyNavigation from
+  // UrlbarInputController.jsm:272, modified so that it runs regardless
+  // of whether AppConstants.platform == "macosx". I understand the
+  // reasoning; Macs *don't* use Control for accel or really anything
+  // else by default and so native textboxes can keep the emacs-style
+  // keys inherited from NextStep for free (and therefore the urlbar
+  // should emulate that), whereas GTK uses Control as accel by default
+  // and doesn't add any emacs-style bindings unless you enable an
+  // obscure theme, because they would conflict with many of its default
+  // PC-style bindings. But in my case, I am using Linux (or BSD)
+  // because it is a *nix, like NextStep, not because it is a
+  // replacement operating system for the PC, and always have the GTK
+  // "Emacs" key theme enabled. Ideally, we could query the toolkit to
+  // see if it has emacs-style keys enabled, but that's unlikely to ever
+  // be possible (or acceptably performant unless we add it to
+  // AppConstants instead of checking here), so I think the best shot
+  // for getting a fix accepted upstream would be to add a hidden pref
+  // which defaults to the current "yes if macOS, no otherwise"
+  // behavior, but can be set to values meaning "always" or "never".
+  UrlbarInput.prototype._on_keydown = function(event) {
+    if (this.eventBufferer.shouldDeferEvent(event)) {
+      this.controller.handleKeyNavigation(event, false);
+    }
+    this._toggleActionOverride(event);
+    this.eventBufferer.maybeDeferEvent(event, () => {
+      /* BEGIN MODIFIED CODE */
+      if (
+        this.controller.view.isOpen &amp;&amp;
+        event.ctrlKey &amp;&amp;
+        (event.key == "n" || event.key == "p")
+      ) {
+        this.controller.view.selectBy(1, { reverse: event.key == "p" });
+        event.preventDefault();
+        return;
+      }
+      /* END MODIFIED CODE */
+      this.controller.handleKeyNavigation(event);
+    });
+  }
+</script>
 </head>
 <html:body xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
